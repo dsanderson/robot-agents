@@ -23,3 +23,8 @@ class ForceAgent():
 
 class PositionAgent():
     """Find a configuration that works"""
+    def __init__(self):
+        pass
+
+    def evaluate(self, design, reqs):
+        inputs = [d.get_config_vars() for d in walk_design(design)]

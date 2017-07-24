@@ -1,14 +1,18 @@
-import utils
+import utils, random
 
 
 class Wheel():
     """A simple wheel, that adds appropriate constraints to solve for the robot position.
     Links to parts that can provide a torque and/or speed"""
-    def __init__(self, reqs, radius, mass, parent=None):
+    def __init__(self, reqs, radius, mass, parent=None, terrain=None):
         self.parent = parent
         self.radius = radius
         self.mass = mass
-        self.terrain = parent.terrain
+        if terrain==None:
+            self.terrain = parent.terrain
+        else:
+            self.terrain = terrain
+        self.name = random.random()
 
     def set_position(self, x, y):
         self.x = x
@@ -61,12 +65,27 @@ class Wheel():
     def set_config_vars(self, vars):
         self.set_position(vars[0], vars[1])
 
+    def score_config(self):
+        score = 0
+        for p in self.terrain:
+            d = utils.dist(p, (self.x, self.y))
+            if d<self.radius:
+                score+=self.radius-d
+        return score
+
+
+
 class Motor():
-    def __init__(self, mass, max_torque, parent=None, child=None):
+    def __init__(self, mass, max_torque, parent=None, child=None, terrain=None):
         self.mass = mass
         self.parent = parent
         self.child = child
         self.max_torque = max_torque
+        if terrain==None:
+            self.terrain = parent.terrain
+        else:
+            self.terrain = terrain
+        self.name = random.random()
 
     def get_config_vars(self):
         return []
@@ -95,13 +114,18 @@ class Motor():
 class Linkage():
     """Class to generate and solve forces for linkages"""
     #TODO: how do we handle linkage loops, ensuring the ends meet up? add a check/cost function:soln, ass a pin object
-    def __init__(self, length, mass, child, parent, is_root=False):
+    def __init__(self, length, mass, child, parent=None, is_root=False, terrain=None):
         self.length = length
         self.mass = mass
         self.child = child
         self.parent = parent
         self.is_root = is_root
         self.angle = 0
+        if terrain==None:
+            self.terrain = parent.terrain
+        else:
+            self.terrain = terrain
+        self.name = random.random()
 
     def get_child_xy(self):
         x = self.x+self.length*math.cos(self.angle)
@@ -140,22 +164,36 @@ class Linkage():
         return transmitted_force
 
 class Pin():
-    def __init__(self, parent1=None, parent2=None):
+    def __init__(self, parent1, parent2, terrain=None):
         self.parent1 = parent1
         self.parent2 = parent2
+        if terrain==None:
+            self.terrain = parent.terrain
+        else:
+            self.terrain = terrain
+        self.name = random.random()
 
     def get_config_vars(self):
         return []
 
-    def get_transmitted_force(self):
+    def get_transmitted_force(self, name):
+        if name == self.parent1.name:
+            return [self.free_forces[0], self.free_forces[1], 0]
+        return [-self.free_forces[0], -self.free_forces[1], 0]
 
+    def get_free_forces(self):
+        return ["x","y"]
+
+    def set_free_forces(self, forces):
+        self.free_forces = forces
 
     def get_net_force(self):
-
+        return [0,0,0]
 
     def set_position(self, x, y):
         self.x = x
         self.y = y
-        self.child.set_position(x,y)
 
     def score_config(self):
+        score = abs(utils.dist((self.parent1.x,self.parent1.y), (self.parent2.x,self.parent2.y)))
+        return score

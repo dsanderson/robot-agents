@@ -1,4 +1,5 @@
 import utils
+from utils import walk_design
 import math
 
 class ForceAgent():
@@ -26,5 +27,12 @@ class PositionAgent():
     def __init__(self):
         pass
 
-    def evaluate(self, design, reqs):
+    def evaluate(self, design, reqs, threshold = 1.0):
         inputs = [d.get_config_vars() for d in walk_design(design)]
+
+    def score_loop():
+        config_score = sum([d.score_config() for d in walk_design(design)])
+        if config_score>1:
+            return config_score
+        # run force agent
+        

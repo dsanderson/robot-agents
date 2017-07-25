@@ -16,7 +16,7 @@ def walk_design(design):
     """walk down the .children of a design, returning each, as a generator"""
     des = []
     for d in design.get_children():
-        des.append(walk_design(d))
+        des = des+walk_design(d)
     des.append(design)
     return des
     

@@ -1,5 +1,5 @@
 from __future__ import division
-from utils import sample, linspace
+from utils import sample
 import numpy as np
 import math
 
@@ -31,6 +31,7 @@ class FlatAgent(TerrainAgent):
             p1 = (-self.window_size[1]/math.tan(ang), -self.window_size[0])
             p2 = (self.window_size[1]/math.tan(ang), self.window_size[0])
         self.terrain = interpolate_line(p1, p2, self.res)
+        return self.terrain
 
 class StepAgent(TerrainAgent):
     def set_step_height(self, height):

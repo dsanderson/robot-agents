@@ -1,4 +1,4 @@
-import utils, random
+import utils, random, math
 
 
 class Wheel():
@@ -26,7 +26,7 @@ class Wheel():
         self.contact_points = contact_points
         return self.contact_points
 
-    def get_free_forces():
+    def get_free_forces(self):
         contact_points = self.get_contact_points()
         self.free_forces = []
         for c in contact_points:
@@ -52,7 +52,7 @@ class Wheel():
         transmitted_force = [-net_external_force_x, -net_external_force_y, -net_external_torque]
         return transmitted_force
 
-    def get_net_forces(self):
+    def get_net_force(self):
         """we assume each body is static, so we can set the net force to zero and calculate the corresponding internal forces"""
         return [0,0,0]
 
@@ -63,7 +63,8 @@ class Wheel():
             return []
 
     def set_config_vars(self, vars):
-        self.set_position(vars[0], vars[1])
+        if vars!=[]:
+            self.set_position(vars[0], vars[1])
 
     def score_config(self):
         score = 0
@@ -77,10 +78,9 @@ class Wheel():
         return []
 
 class Motor():
-    def __init__(self, mass, max_torque, parent=None, child=None, terrain=None):
+    def __init__(self, mass, max_torque, parent=None, terrain=None):
         self.mass = mass
         self.parent = parent
-        self.child = child
         self.max_torque = max_torque
         if terrain==None:
             self.terrain = parent.terrain
@@ -88,11 +88,14 @@ class Motor():
             self.terrain = terrain
         self.name = random.random()
 
+    def set_child(self, child):
+        self.child = child
+        
     def get_config_vars(self):
         return []
 
     def get_transmitted_force(self):
-        x, y, torque = *self.child.get_transmitted_force()
+        x, y, torque = self.child.get_transmitted_force()
         y = y-self.mass*9.8
         if abs(torque)>abs(self.max_torque):
             out_torque = self.signum(torque)*self.max_torque
@@ -114,22 +117,30 @@ class Motor():
 
     def get_children(self):
         return [self.child]
+    
+    def get_free_forces(self):
+        return []
+    
+    def set_free_forces(self, forces):
+        pass
 
 class Linkage():
     """Class to generate and solve forces for linkages"""
     #TODO: how do we handle linkage loops, ensuring the ends meet up? add a check/cost function:soln, ass a pin object
-    def __init__(self, length, mass, child, parent=None, is_root=False, terrain=None):
+    def __init__(self, length, mass, parent=None, is_root=False, terrain=None):
         self.length = length
         self.mass = mass
-        self.child = child
         self.parent = parent
         self.is_root = is_root
         self.angle = 0
-        if terrain==None:
+        if terrain==None and not is_root:
             self.terrain = parent.terrain
         else:
             self.terrain = terrain
         self.name = random.random()
+        
+    def set_child(self, child):
+        self.child = child
 
     def get_child_xy(self):
         x = self.x+self.length*math.cos(self.angle)
@@ -166,11 +177,11 @@ class Linkage():
             return [sum(z) for z in zip(tf, pf)]
 
     def get_transmitted_force(self):
-        x, y, torque = *self.child.get_transmitted_force()
-        net_torque = torque+math.sin(self.ang+math.pi)*x*self.length
-        net_torque += math.cos(self.ang+math.pi)*y*self.length
+        x, y, torque = self.child.get_transmitted_force()
+        net_torque = torque+math.sin(self.angle+math.pi)*x*self.length
+        net_torque += math.cos(self.angle+math.pi)*y*self.length
         net_y = y-self.mass*9.8
-        net_torque += math.cos(self.ang+math.pi)*-self.mass*9.8*self.length*0.66
+        net_torque += math.cos(self.angle+math.pi)*-self.mass*9.8*self.length*0.66
         transmitted_force = [-x, -net_y, -net_torque]
         return transmitted_force
 
@@ -179,6 +190,12 @@ class Linkage():
             return [self.child]
         else:
             return [self.child, self.parent]
+    
+    def get_free_forces(self):
+        return []
+    
+    def set_free_forces(self, forces):
+        pass
 
 class Pin():
     def __init__(self, parent1, parent2, terrain=None):

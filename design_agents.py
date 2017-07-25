@@ -4,7 +4,7 @@ import utils, random
 class Wheel():
     """A simple wheel, that adds appropriate constraints to solve for the robot position.
     Links to parts that can provide a torque and/or speed"""
-    def __init__(self, reqs, radius, mass, parent=None, terrain=None):
+    def __init__(self, radius, mass, parent=None, terrain=None):
         self.parent = parent
         self.radius = radius
         self.mass = mass
@@ -73,7 +73,8 @@ class Wheel():
                 score+=self.radius-d
         return score
 
-
+    def get_children(self):
+        return []
 
 class Motor():
     def __init__(self, mass, max_torque, parent=None, child=None, terrain=None):
@@ -111,6 +112,9 @@ class Motor():
         self.y = y
         self.child.set_position(x,y)
 
+    def get_children(self):
+        return [self.child]
+
 class Linkage():
     """Class to generate and solve forces for linkages"""
     #TODO: how do we handle linkage loops, ensuring the ends meet up? add a check/cost function:soln, ass a pin object
@@ -136,6 +140,8 @@ class Linkage():
         self.x = x
         self.y = y
         self.child.set_position(*self.get_child_xy())
+        if self.is_root:
+            self.parent.set_position(x, y)
 
     def get_config_vars(self):
         if self.is_root==True:
@@ -152,7 +158,12 @@ class Linkage():
             self.child.set_position(*self.get_child_xy())
 
     def get_net_force(self):
-        return [0,0,0]
+        if not self.is_root:
+            return [0,0,0]
+        else:
+            tf = self.get_transmitted_force()
+            pf = self.parent.get_transmitted_force()
+            return [sum(z) for z in zip(tf, pf)]
 
     def get_transmitted_force(self):
         x, y, torque = *self.child.get_transmitted_force()
@@ -162,6 +173,12 @@ class Linkage():
         net_torque += math.cos(self.ang+math.pi)*-self.mass*9.8*self.length*0.66
         transmitted_force = [-x, -net_y, -net_torque]
         return transmitted_force
+
+    def get_children(self):
+        if not self.is_root:
+            return [self.child]
+        else:
+            return [self.child, self.parent]
 
 class Pin():
     def __init__(self, parent1, parent2, terrain=None):
@@ -197,3 +214,6 @@ class Pin():
     def score_config(self):
         score = abs(utils.dist((self.parent1.x,self.parent1.y), (self.parent2.x,self.parent2.y)))
         return score
+
+    def get_children(self):
+        return []

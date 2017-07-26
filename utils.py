@@ -1,4 +1,6 @@
 import random, math
+import matplotlib.pyplot as plt
+
 
 def sample():
     return random.random()
@@ -19,4 +21,12 @@ def walk_design(design):
         des = des+walk_design(d)
     des.append(design)
     return des
-    
+
+def draw_design(design, terrain):
+    f, p = plt.subplots(1, 1)
+    p.hold(True)
+    terrain.draw(p)
+    for d in walk_design(design):
+        d.draw(p)
+    plt.axis('equal')
+    plt.show()

@@ -49,7 +49,7 @@ class Wheel():
             net_external_torque += math.cos(ang)*self.free_forces[2*i+1]*self.radius
             net_external_force_x += self.free_forces[2*i]
             net_external_force_y += self.free_forces[2*i+1]
-        transmitted_force = [-net_external_force_x, -net_external_force_y, -net_external_torque]
+        transmitted_force = [net_external_force_x, net_external_force_y, net_external_torque]
         return transmitted_force
 
     def get_net_force(self):
@@ -77,6 +77,12 @@ class Wheel():
     def get_children(self):
         return []
 
+    def draw(self, plot):
+        xs = [self.x+self.radius*math.cos(math.pi*2.0*ang/100.0) for ang in xrange(0,100)]
+        ys = [self.y+self.radius*math.sin(math.pi*2.0*ang/100.0) for ang in xrange(0,100)]
+        plot.plot(xs, ys, "r")
+
+
 class Motor():
     def __init__(self, mass, max_torque, parent=None, terrain=None):
         self.mass = mass
@@ -90,7 +96,7 @@ class Motor():
 
     def set_child(self, child):
         self.child = child
-        
+
     def get_config_vars(self):
         return []
 
@@ -101,7 +107,7 @@ class Motor():
             out_torque = self.signum(torque)*self.max_torque
         else:
             out_torque = torque
-        transmitted_force = [-x, -y, -out_torque]
+        transmitted_force = [x, y, out_torque]
         return transmitted_force
 
     def get_net_force(self):
@@ -117,10 +123,10 @@ class Motor():
 
     def get_children(self):
         return [self.child]
-    
+
     def get_free_forces(self):
         return []
-    
+
     def set_free_forces(self, forces):
         pass
 
@@ -138,7 +144,7 @@ class Linkage():
         else:
             self.terrain = terrain
         self.name = random.random()
-        
+
     def set_child(self, child):
         self.child = child
 
@@ -182,7 +188,7 @@ class Linkage():
         net_torque += math.cos(self.angle+math.pi)*y*self.length
         net_y = y-self.mass*9.8
         net_torque += math.cos(self.angle+math.pi)*-self.mass*9.8*self.length*0.66
-        transmitted_force = [-x, -net_y, -net_torque]
+        transmitted_force = [x, net_y, net_torque]
         return transmitted_force
 
     def get_children(self):
@@ -190,12 +196,18 @@ class Linkage():
             return [self.child]
         else:
             return [self.child, self.parent]
-    
+
     def get_free_forces(self):
         return []
-    
+
     def set_free_forces(self, forces):
         pass
+
+    def draw(self, plot):
+        cx, cy = self.get_child_xy()
+        xs = [self.x, cx]
+        ys = [self.y, cy]
+        plot.plot(xs, ys, "g")
 
 class Pin():
     def __init__(self, parent1, parent2, terrain=None):

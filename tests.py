@@ -6,7 +6,7 @@ import math
 
 def test_flat_agent():
     A = input_agents.FlatAgent()
-    A.set_angles(math.radians(20), math.radians(20))
+    A.set_angles(0.0,0.0)#math.radians(20), math.radians(20))
     ct = A.create_terrain()
     print len(ct), ct[0], ct[-1]
     return A, ct
@@ -16,10 +16,14 @@ def build_cart(terrain = [(0,0)]):
         None,
         True,
         terrain)
-    w1 = design_agents.Wheel(0.08, 0.1, Design)
-    w2 = design_agents.Wheel(0.08, 0.1, Design)
-    Design.set_child(w1)
-    Design.parent = w2
+    m1 = design_agents.Motor(0.1, float("inf"), Design)
+    m2 = design_agents.Motor(0.1, float("inf"), Design)
+    w1 = design_agents.Wheel(0.08, 0.1, m1)
+    w2 = design_agents.Wheel(0.08, 0.1, m2)
+    m1.set_child(w1)
+    m2.set_child(w2)
+    Design.set_child(m1)
+    Design.parent = m2
     return Design
 
 def test_config(Design):
@@ -52,6 +56,6 @@ if __name__ == '__main__':
     A, ct = test_flat_agent()
     c = build_cart(ct)
     test_config(c)
-    c.set_config_vars([0.0,0.08,math.radians(20)])
-    #test_force_eval(c)
+    c.set_config_vars([0.0,0.08,0.0])
+    test_force_eval(c)
     test_draw(c, A)

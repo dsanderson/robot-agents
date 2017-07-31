@@ -81,6 +81,9 @@ class Wheel():
         xs = [self.x+self.radius*math.cos(math.pi*2.0*ang/100.0) for ang in xrange(0,100)]
         ys = [self.y+self.radius*math.sin(math.pi*2.0*ang/100.0) for ang in xrange(0,100)]
         plot.plot(xs, ys, "r")
+        for i, c in enumerate(self.contact_points):
+            plot.plot([c[0], c[0]+self.free_forces[i*2]], [c[1], c[1]])
+            plot.plot([c[0], c[0]], [c[1], c[1]+self.free_forces[1+i*2]])
 
 
 class Motor():
@@ -100,6 +103,9 @@ class Motor():
     def get_config_vars(self):
         return []
 
+    def set_config_vars(self, vars):
+        pass
+
     def get_transmitted_force(self):
         x, y, torque = self.child.get_transmitted_force()
         y = y-self.mass*9.8
@@ -113,7 +119,7 @@ class Motor():
     def get_net_force(self):
         tf = self.get_transmitted_force()
         ef = self.child.get_transmitted_force()
-        forces = [sum(x) for x in zip(tf, ef)]
+        forces = [x[0]-x[1] for x in zip(tf, ef)]
         return forces
 
     def set_position(self, x, y):
@@ -128,6 +134,9 @@ class Motor():
         return []
 
     def set_free_forces(self, forces):
+        pass
+
+    def draw(self, *args):
         pass
 
 class Linkage():
@@ -180,14 +189,16 @@ class Linkage():
         else:
             tf = self.get_transmitted_force()
             pf = self.parent.get_transmitted_force()
-            return [sum(z) for z in zip(tf, pf)]
+            forces = [z[0]+z[1] for z in zip(tf, pf)]
+            forces[1] = forces[1]+self.mass*9.8
+            return forces
 
     def get_transmitted_force(self):
         x, y, torque = self.child.get_transmitted_force()
         net_torque = torque+math.sin(self.angle+math.pi)*x*self.length
         net_torque += math.cos(self.angle+math.pi)*y*self.length
         net_y = y-self.mass*9.8
-        net_torque += math.cos(self.angle+math.pi)*-self.mass*9.8*self.length*0.66
+        net_torque += math.cos(self.angle+math.pi)*-self.mass*9.8*self.length/2.0
         transmitted_force = [x, net_y, net_torque]
         return transmitted_force
 

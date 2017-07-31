@@ -33,6 +33,9 @@ class FlatAgent(TerrainAgent):
         self.terrain = interpolate_line(p1, p2, self.res)
         return self.terrain
 
+    def draw(self, plt):
+        plt.plot([self.terrain[0][0], self.terrain[-1][0]], [self.terrain[0][1], self.terrain[-1][1]])
+
 class StepAgent(TerrainAgent):
     def set_step_height(self, height):
         self.step_height = height

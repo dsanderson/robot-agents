@@ -58,4 +58,5 @@ if __name__ == '__main__':
     test_config(c)
     c.set_config_vars([0.0,0.08,0.0])
     test_force_eval(c)
+    eval_agents.StatusAgent().pprint(c)
     test_draw(c, A)

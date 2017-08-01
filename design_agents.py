@@ -110,17 +110,16 @@ class Motor():
         x, y, torque = self.child.get_transmitted_force()
         y = y-self.mass*9.8
         if abs(torque)>abs(self.max_torque):
-            out_torque = self.signum(torque)*self.max_torque
+            out_torque = utils.signum(torque)*self.max_torque
         else:
             out_torque = torque
         transmitted_force = [x, y, out_torque]
+        self.excess_torque = torque-out_torque
         return transmitted_force
 
     def get_net_force(self):
-        tf = self.get_transmitted_force()
-        ef = self.child.get_transmitted_force()
-        forces = [x[0]-x[1] for x in zip(tf, ef)]
-        return forces
+        self.get_transmitted_force()
+        return [0,0,self.excess_torque]
 
     def set_position(self, x, y):
         self.x = x
@@ -187,19 +186,25 @@ class Linkage():
         if not self.is_root:
             return [0,0,0]
         else:
-            tf = self.get_transmitted_force()
+            tf = self.child.get_transmitted_force()
             pf = self.parent.get_transmitted_force()
-            forces = [z[0]+z[1] for z in zip(tf, pf)]
-            forces[1] = forces[1]+self.mass*9.8
+            net_x = tf[0]+pf[0]
+            net_y = tf[1]+pf[1]-self.mass*9.8
+            #print tf[1], pf[1], net_y
+            net_torque = tf[2]+pf[2]+(-1.0*tf[0]*math.sin(self.angle)*self.length/2.0)+(tf[1]*math.cos(self.angle)*self.length/2.0)+(-1.0*tf[0]*math.sin(self.angle+math.pi)*self.length/2.0)+(tf[1]*math.cos(self.angle+math.pi)*self.length/2.0)
+            forces = [net_x, net_y, net_torque]
             return forces
 
     def get_transmitted_force(self):
-        x, y, torque = self.child.get_transmitted_force()
-        net_torque = torque+math.sin(self.angle+math.pi)*x*self.length
-        net_torque += math.cos(self.angle+math.pi)*y*self.length
-        net_y = y-self.mass*9.8
-        net_torque += math.cos(self.angle+math.pi)*-self.mass*9.8*self.length/2.0
-        transmitted_force = [x, net_y, net_torque]
+        if not self.is_root:
+            x, y, torque = self.child.get_transmitted_force()
+            net_torque = torque-math.sin(self.angle+math.pi)*x*self.length/2.0
+            net_torque += math.cos(self.angle+math.pi)*y*self.length/2.0
+            net_y = y-self.mass*9.8
+            net_torque += math.cos(self.angle+math.pi)*-self.mass*9.8*self.length/2.0
+            transmitted_force = [x, net_y, net_torque]
+        else:
+            transmitted_force = [0,0,0]
         return transmitted_force
 
     def get_children(self):

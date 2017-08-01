@@ -1,6 +1,6 @@
 import utils
 from utils import walk_design
-import math
+import math, random
 import scipy.optimize
 import numpy as np
 
@@ -52,6 +52,9 @@ class ForceAgent():
         self.get_free_forces(Design)
         x0 = self.unpack_forces()
         res = scipy.optimize.minimize(self.score, x0, args = (Design))
+        if not res.success:
+            x1 = [random.random() for x in x0]
+            res = scipy.optimize.minimize(self.score, x1, args = (Design))
         return res.x, res.success, res.fun
 
 
@@ -102,3 +105,14 @@ class ConfigAgent():
         x0 = self.unpack_configs()
         res = scipy.optimize.minimize(self.score, x0, args = (Design))
         return res.x, res.success, res.fun
+
+class StatusAgent():
+    def __init__(self):
+        pass
+
+    def pprint(self, Design):
+        for d in utils.walk_design(Design):
+            print "{}: {}".format(d.__class__.__name__, d.name)
+            print "Net Forces:\t{}\t{}\t{}".format(*d.get_net_force())
+            print "Transmitted Forces:\t{}\t{}\t{}".format(*d.get_transmitted_force())
+            print ""

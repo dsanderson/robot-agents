@@ -29,18 +29,20 @@ def wheel_flat_points_gen(radius, max_torque, mass, max_strength=10, mu=0.5, den
                 Fx_center = -Torque*radius
                 if abs(Fx_center)<abs(max_Fr):
                     pts.append((x, y, Fx_center, Fy_center, Torque, 1))
-                    pts.append((x, y, Fx_center+0.01, Fy_center, Torque, 0))
-                    pts.append((x, y, Fx_center-0.01, Fy_center, Torque, 0))
-                    pts.append((x, y, Fx_center, Fy_center+0.01, Torque, 0))
-                    pts.append((x, y, Fx_center, Fy_center-0.01, Torque, 0))
-        pts.append((x, y+0.01, 0, weight, 0, 1))
-        pts.append((x, y+0.01, 0, weight-0.01, 0, 0))
-        pts.append((x, y+0.01, 0, weight+0.01, 0, 0))
-        pts.append((x, y+0.01, -0.01, weight, 0, 0))
-        pts.append((x, y+0.01, 0.01, weight, 0, 0))
-        pts.append((x, y+0.01, 0, weight, -0.01, 0))
-        pts.append((x, y+0.01, 0, weight, 0.01, 0))
-        pts.append((x, y-0.01, 0, 0, 0, 0))
+                    #pts.append((x, y, Fx_center+0.01, Fy_center, Torque, 0))
+                    #pts.append((x, y, Fx_center-0.01, Fy_center, Torque, 0))
+                    #pts.append((x, y, Fx_center, Fy_center+0.01, Torque, 0))
+                    #pts.append((x, y, Fx_center, Fy_center-0.01, Torque, 0))
+    for x in np.linspace(0, 1, density):
+        for y in np.linspace(radius+0.01, 1, density):
+            pts.append((x, y, 0, weight, 0, 1))
+        #pts.append((x, y+0.01, 0, weight-0.01, 0, 0))
+        #pts.append((x, y+0.01, 0, weight+0.01, 0, 0))
+        #pts.append((x, y+0.01, -0.01, weight, 0, 0))
+        #pts.append((x, y+0.01, 0.01, weight, 0, 0))
+        #pts.append((x, y+0.01, 0, weight, -0.01, 0))
+        #pts.append((x, y+0.01, 0, weight, 0.01, 0))
+        #pts.append((x, y-0.01, 0, 0, 0, 0))
     return pts
 
 
